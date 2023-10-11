@@ -7,7 +7,6 @@ import sys
 script_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(script_dir))
 
-# Adjust the import based on your package structure
 from load_ag_news_dataset.read_ag_news_data import load_ag_dataframes
 
 
