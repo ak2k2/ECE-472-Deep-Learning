@@ -10,15 +10,15 @@ dataset:
 
 # Model configuration
 model:
-  num_hidden_layers: 8
+  num_hidden_layers: 4
   hidden_layer_width: 512
   hidden_activation: "relu"  # Use the string to identify the function, actual implementation will map this string to tf.nn.relu
   output_activation: "identity"  # Use the string to identify the function, actual implementation will map this string to tf.identity
 
 # Training configuration
 training:
-  num_epochs: 60
-  batch_size: 64
+  num_epochs: 10
+  batch_size: 512
 
 # optimizer configuration
 optimizer:
