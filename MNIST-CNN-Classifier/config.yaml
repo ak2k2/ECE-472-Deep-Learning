@@ -1,0 +1,27 @@
+# config.yaml
+
+# TensorFlow Environment Configuration
+tf_cpp_min_log_level: "2"
+
+# Random Seed Settings
+tf_random_seed: 0
+np_random_seed: 0
+
+# Data Configuration
+num_training_samples: 6000
+
+# Model Configuration
+input_depth: 1
+conv_layer_depths: [32, 64, 128]
+conv_kernel_sizes: [[3, 3], [3, 3]]
+fc_layer_sizes: [64]
+num_classes: 10
+dropout_rate: 0.3
+
+# Optimization and Training Configuration
+learning_rate: 0.001
+beta_1: 0.9
+beta_2: 0.999
+lambda_l2: 0.002
+epochs: 4
+batch_size: 64

@@ -1,0 +1,15 @@
+# Mac OS X Finder
+*.DS_Store
+
+# venv
+CurroDL/
+
+# vscode
+.vscode/
+
+# archives and datasets
+*.zip
+*.tar.gz
+CIFAR10-ResNet-Classifier/cifar_pickle_archive/*
+
+

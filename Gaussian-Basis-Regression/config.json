@@ -1,0 +1,9 @@
+{
+    "SEED": 1401258965930102242,
+    "RANGE_END": 4,
+    "NUM_DATA_POINTS": 100,
+    "NUM_BASIS_FUNCTIONS": 10,
+    "STEP_SIZE": 0.1,
+    "NUM_ITERS": 100,
+    "LOG_LEVEL": "INFO"
+}

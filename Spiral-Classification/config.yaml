@@ -1,0 +1,26 @@
+# config.yaml
+
+# RNG seed
+seed: 123
+
+# Data generation
+N: 500
+K: 4
+
+# MLP settings
+num_inputs: 2
+num_outputs: 1
+num_hidden_layers: 5
+hidden_layer_width: 32
+
+# "relu" -> tf.nn.relu
+# "leaky_relu" -> tf.nn.leaky_relu
+# "sigmoid" -> tf.nn.sigmoid
+# "tanh" -> tf.nn.tanh
+hidden_activation: "leaky_relu"
+output_activation: "sigmoid"
+
+# Training settings
+learning_rate: 0.02
+epochs: 1000
+lambda_reg: 0.001
