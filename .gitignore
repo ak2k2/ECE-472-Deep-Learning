@@ -11,5 +11,6 @@ CurroDL/
 *.zip
 *.tar.gz
 CIFAR10-ResNet-Classifier/cifar_pickle_archive/*
+AG-News-Classifier/AG-News-Data/*
 
 
