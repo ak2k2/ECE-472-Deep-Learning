@@ -58,6 +58,5 @@ def test_create_embeddings():
     ), "Each embedding should have 768 dimensions."
 
 
-# This part is necessary to run the tests
 if __name__ == "__main__":
     pytest.main([__file__])

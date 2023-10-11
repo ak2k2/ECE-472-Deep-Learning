@@ -16,8 +16,8 @@ def read_ag_news_data():
     :return: tuple of DataFrames, (test_df, train_df)
     """
     # Load the data into pandas DataFrames
-    test_pickle_path = "embedding-ag-news/embedded-datasets/test_with_embeddings.pkl"
-    train_pickle_path = "embedding-ag-news/embedded-datasets/train_with_embeddings.pkl"
+    test_pickle_path = "embedding_ag_news/embedded-datasets/test_with_embeddings.pkl"
+    train_pickle_path = "embedding_ag_news/embedded-datasets/test_with_embeddings.pkl"
     test_df = load_data(test_pickle_path)
     train_df = load_data(train_pickle_path)
 

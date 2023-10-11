@@ -16,7 +16,6 @@ def test_load_ag_news_data_as_df():
     AG News data from pickle files and returns DataFrames.
     """
     # Mock the pickle.load function to return a sample DataFrame
-    # This avoids the need to read an actual file from disk
     with mock.patch("pickle.load") as mock_pickle_load:
         mock_pickle_load.return_value = pd.DataFrame(
             {"text": ["sample text"], "label": [1]}
@@ -34,11 +33,9 @@ def test_load_ag_news_data_as_df():
         assert "text" in train_df.columns
         assert "label" in train_df.columns
 
-        # Verify the DataFrame is not empty
         assert not test_df.empty
         assert not train_df.empty
 
 
-# This part is necessary to run the test
 if __name__ == "__main__":
     pytest.main([__file__])

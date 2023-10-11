@@ -45,10 +45,6 @@ def main():
     # Load the data
     train_df, test_df = load_ag_dataframes()
 
-    # take a subset of the data
-    train_df = train_df[:100]
-    test_df = test_df[:100]
-
     # Load pre-trained model and tokenizer from HuggingFace Hub
     tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
     model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
@@ -57,9 +53,12 @@ def main():
     train_df["embeddings"] = create_embeddings(train_df, tokenizer, model)
     test_df["embeddings"] = create_embeddings(test_df, tokenizer, model)
 
+    # If embeddedd-datasets folder does not exist, create it
+    Path("embedding_ag_news/embedded-datasets").mkdir(parents=True, exist_ok=True)
+
     # train_df and test_df have a new column 'embeddings' that contain the sentence embeddings.
-    train_df.to_pickle("embedding-ag-news/embedded-datasets/train_with_embeddings.pkl")
-    test_df.to_pickle("embedding-ag-news/embedded-datasets/test_with_embeddings.pkl")
+    train_df.to_pickle("embedding_ag_news/embedded-datasets/train_with_embeddings.pkl")
+    test_df.to_pickle("embedding_ag_news/embedded-datasets/test_with_embeddings.pkl")
 
     print("Embeddings are successfully created and dataframes are saved.")
 
