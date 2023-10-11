@@ -1,13 +1,14 @@
-import pandas as pd
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pandas as pd
 
 script_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(script_dir))
 
-from load_ag_news_dataset.read_ag_news_data import (
+from load_ag_news_dataset.read_ag_news_data import (  # reuse the load_data function from read_ag_news_data.py
     load_data,
-)  # reuse the load_data function from read_ag_news_data.py
+)
 
 
 def read_ag_news_data():
@@ -22,8 +23,3 @@ def read_ag_news_data():
     train_df = load_data(train_pickle_path)
 
     return test_df, train_df
-
-
-df1, df2 = read_ag_news_data()
-
-print(df1.head())

@@ -1,5 +1,6 @@
-import pandas as pd
 import pickle
+
+import pandas as pd
 
 
 def load_data(pickle_file_path):

@@ -15,5 +15,6 @@ AG-News-Classifier/.pytest_cache/*
 *.tar.gz
 CIFAR10-ResNet-Classifier/cifar_pickle_archive/*
 AG-News-Classifier/AG-News-Data/*
+AG-News-Classifier/embedding_ag_news/embedded-datasets/*
 
 

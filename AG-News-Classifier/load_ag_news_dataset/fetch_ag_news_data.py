@@ -1,7 +1,8 @@
-import pandas as pd
-import pickle
-from datasets import load_dataset
 import os
+import pickle
+
+import pandas as pd
+from datasets import load_dataset
 
 
 def get_ag_news() -> tuple:
@@ -15,7 +16,7 @@ def get_ag_news() -> tuple:
     train_df = pd.DataFrame(dataset["train"])
     test_df = pd.DataFrame(dataset["test"])
 
-    return train_df, test_df
+    return test_df, train_df
 
 
 def save_as_pickle(
@@ -50,5 +51,5 @@ def save_as_pickle(
 
 
 if __name__ == "__main__":
-    train_df, test_df = get_ag_news()
-    save_as_pickle(train_df, test_df)
+    test_df, train_df = get_ag_news()
+    save_as_pickle(test_df, train_df)

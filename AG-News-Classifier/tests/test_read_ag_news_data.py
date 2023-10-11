@@ -1,8 +1,9 @@
-import pandas as pd
-import pytest
+import sys
 from pathlib import Path
 from unittest import mock
-import sys
+
+import pandas as pd
+import pytest
 
 script_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(script_dir))
@@ -22,7 +23,10 @@ def test_load_ag_news_data_as_df():
         )
 
         # Call the function
-        test_df, train_df = load_ag_dataframes()
+        train_df, test_df = load_ag_dataframes()
+
+        assert train_df.shape == (1, 2)
+        assert test_df.shape == (1, 2)
 
         # Verify the returned value is a DataFrame with the expected columns
         assert isinstance(test_df, pd.DataFrame)

@@ -1,14 +1,16 @@
-import torch
-import torch.nn.functional as F
-from transformers import AutoTokenizer, AutoModel
 import sys
 from pathlib import Path
+
+import torch
+import torch.nn.functional as F
+from tqdm import tqdm  # for progress bars
+from transformers import AutoModel, AutoTokenizer
 
 script_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(script_dir))
 
-from load_ag_news_dataset.read_ag_news_data import load_ag_dataframes
 import pandas as pd
+from load_ag_news_dataset.read_ag_news_data import load_ag_dataframes
 
 
 def mean_pooling(model_output, attention_mask):
@@ -23,27 +25,38 @@ def mean_pooling(model_output, attention_mask):
     )
 
 
-def create_embeddings(dataframe, tokenizer, model):
-    # Convert the text data to embeddings
-    sentences = dataframe["text"].tolist()
-    encoded_input = tokenizer(
-        sentences, padding=True, truncation=True, return_tensors="pt", max_length=512
-    )
+def create_embeddings(dataframe, tokenizer, model, batch_size=5000):
+    # Initialize an empty list to store the embeddings
+    all_embeddings = []
 
-    with torch.no_grad():
-        model_output = model(**encoded_input)
+    # Process the dataframe in batches to avoid system memory issues and to show progress bar
+    for i in tqdm(range(0, len(dataframe), batch_size)):
+        batch = dataframe.iloc[i : i + batch_size]
+        sentences = batch["text"].tolist()
+        encoded_input = tokenizer(
+            sentences,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+        )
 
-    sentence_embeddings = mean_pooling(model_output, encoded_input["attention_mask"])
-    sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
+        with torch.no_grad():
+            model_output = model(**encoded_input)
 
-    # Convert tensor of embeddings to list of embeddings
-    embeddings = sentence_embeddings.tolist()
-    return embeddings
+        sentence_embeddings = mean_pooling(
+            model_output, encoded_input["attention_mask"]
+        )
+        sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
+
+        # Extend the list of embeddings
+        all_embeddings.extend(sentence_embeddings.tolist())
+
+    return all_embeddings
 
 
 def main():
     # Load the data
-    train_df, test_df = load_ag_dataframes()
+    test_df, train_df = load_ag_dataframes()
 
     # Load pre-trained model and tokenizer from HuggingFace Hub
     tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")

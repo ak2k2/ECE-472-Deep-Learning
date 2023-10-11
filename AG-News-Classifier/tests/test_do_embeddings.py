@@ -1,15 +1,16 @@
-import pandas as pd
-import pytest
+import sys
 from pathlib import Path
 from unittest import mock
-import sys
+
+import pandas as pd
+import pytest
 import torch
 
 script_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(script_dir))
 
-from embedding_ag_news.do_embeddings import create_embeddings, mean_pooling
-from transformers import AutoTokenizer, AutoModel
+from embedding_ag_news.do_embeddings_with_mini_lm import create_embeddings, mean_pooling
+from transformers import AutoModel, AutoTokenizer
 
 
 def test_mean_pooling():

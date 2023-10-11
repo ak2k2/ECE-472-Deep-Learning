@@ -1,0 +1,33 @@
+# Configuration for training an MLP on the AG News dataset
+
+# Seed setting for reproducibility
+seed: 30304755
+
+# Paths for the embedded datasets
+dataset:
+  train_pickle_path: "embedding_ag_news/embedded-datasets/train_with_embeddings.pkl"
+  test_pickle_path: "embedding_ag_news/embedded-datasets/test_with_embeddings.pkl"
+
+# Model configuration
+model:
+  num_hidden_layers: 8
+  hidden_layer_width: 512
+  hidden_activation: "relu"  # Use the string to identify the function, actual implementation will map this string to tf.nn.relu
+  output_activation: "identity"  # Use the string to identify the function, actual implementation will map this string to tf.identity
+
+# Training configuration
+training:
+  num_epochs: 60
+  batch_size: 64
+
+# optimizer configuration
+optimizer:
+  learning_rate: 0.001
+  beta_1: 0.9
+  beta_2: 0.99
+  ep: 1e-13
+  lambda_l2: 0.0005
+
+# Evaluation configuration
+evaluation:
+  num_display_items: 20
