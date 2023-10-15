@@ -26,7 +26,6 @@ def mean_pooling(model_output, attention_mask):
 
 
 def create_embeddings(dataframe, tokenizer, model, batch_size=5000):
-    # Initialize an empty list to store the embeddings
     all_embeddings = []
 
     # Process the dataframe in batches to avoid system memory issues and to show progress bar
