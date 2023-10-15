@@ -4,7 +4,8 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "1"  # disable tensorflow warnings
 import tensorflow as tf
 
 """
-Linear class from Spiral Classification Assignment: Tested in Spiral-Classification/test_spiral_classification.py
+Recycle the Linear class from Spiral Classification Assignment: Tested in Spiral-Classification/test_spiral_classification.py
+NOTES: change dtype to float 32 for ada embeddings
 """
 
 

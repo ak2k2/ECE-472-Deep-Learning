@@ -86,6 +86,12 @@ def evaluate_model(model, features, labels):
     return predicted_classes.numpy()  # Return the predicted classes
 
 
+def print_padding():
+    print("\n\n")
+    print("*" * 80)
+    print("*" * 80)
+
+
 def main():
     config_path = (
         "classify_ag_news_embeddings/config.yaml"  # Path to the configuration file
@@ -116,9 +122,7 @@ def main():
     num_hidden_layers = config["model"]["num_hidden_layers"]
     hidden_layer_width = config["model"]["hidden_layer_width"]
     hidden_activation = (
-        tf.nn.leaky_relu
-        if config["model"]["hidden_activation"] == "relu"
-        else tf.identity
+        tf.nn.relu6 if config["model"]["hidden_activation"] == "relu" else tf.identity
     )
     output_activation = tf.identity
 
@@ -142,9 +146,7 @@ def main():
         lambda_l2=config["optimizer"]["lambda_l2"],
     )
 
-    print("\n\n")
-    print("*" * 80)
-    print("*" * 80)
+    print_padding()
     print("Starting training ...\n")
     print(f"Model: {model}\n")
     print(f"Optimizer: {optimizer}\n")
@@ -153,8 +155,7 @@ def main():
     print(f"Test features shape: {test_features.shape}")
     print(f"Test labels shape: {test_labels.shape}\n")
     print(f"Number of trainable variables: {len(model.trainable_variables)}\n")
-    print("*" * 80)
-    print("*" * 80)
+    print_padding()
 
     train_model(
         model,
@@ -188,8 +189,11 @@ def main():
 
     # Confusion matrix
     matrix = confusion_matrix(test_labels, predicted_classes)
+
+    print_padding()
     print("Confusion Matrix:")
     print(matrix)
+    print_padding()
 
 
 if __name__ == "__main__":

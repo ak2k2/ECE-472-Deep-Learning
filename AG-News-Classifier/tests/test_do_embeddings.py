@@ -17,7 +17,7 @@ def test_mean_pooling():
     """
     Test the mean_pooling function to ensure it handles the tensor operations correctly.
     """
-    # Create mock data for testing
+
     model_output = (
         torch.randn(1, 3, 768),
     )  # Mocking a model output of shape (batch_size, sequence_length, hidden_size)
@@ -38,11 +38,11 @@ def test_create_embeddings():
     """
     Test the create_embeddings function to ensure it returns the correct output format.
     """
-    # mock dataframe
+    # Mock dataframe
     data = {"text": ["This is a test sentence.", "This is another test sentence."]}
     df = pd.DataFrame(data)
 
-    # Load a real tokenizer and model
+    # Tokenizer and model from HuggingFace
     tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
     model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 

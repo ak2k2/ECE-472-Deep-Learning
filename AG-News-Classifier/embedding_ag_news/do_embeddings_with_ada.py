@@ -1,11 +1,10 @@
 import concurrent.futures
 import logging
 import sys
+import time
 from pathlib import Path
 
-import numpy as np
 import openai
-import pandas as pd
 from tqdm import tqdm
 
 script_dir = Path(__file__).resolve().parent.parent
@@ -23,11 +22,21 @@ logger = logging.getLogger(__name__)
 
 def get_embedding(text, model="text-embedding-ada-002"):
     """
-    Get the embedding for a text using openai.Embedding.create().
+    Get the embedding for a text using openai.Embedding.create() with exponential backoff.
     """
     text = text.replace("\n", " ")  # Ensure no newlines
-    response = openai.Embedding.create(input=[text], model=model)
-    return response["data"][0]["embedding"]
+    retries = 1
+
+    while retries < 5:
+        try:
+            response = openai.Embedding.create(input=[text], model=model)
+            return response["data"][0]["embedding"]
+        except Exception as e:
+            logger.error(e)
+            time.sleep(retries**2)  # Exponential backoff
+            retries += 1
+
+    raise Exception("Max retry attempts reached, unable to get embedding.")
 
 
 def process_and_save_embeddings(df, output_path):
@@ -36,7 +45,7 @@ def process_and_save_embeddings(df, output_path):
     """
     texts = df["text"].tolist()
     # ThreadPool to make requests in parallel (avoid rate limit by keeping the number of requests per minute low)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
         # Use tqdm
         embeddings = list(tqdm(executor.map(get_embedding, texts), total=len(texts)))
 
@@ -48,6 +57,7 @@ def process_and_save_embeddings(df, output_path):
 def main():
     test_df, train_df = load_ag_dataframes()
     train_df = train_df[:50000]
+
     process_and_save_embeddings(
         train_df, "embedding_ag_news/embedded-datasets/train_with_embeddings.pkl"
     )
