@@ -1,10 +1,8 @@
 import sys
 from pathlib import Path
-from unittest import mock
 
 import pandas as pd
 import pytest
-import torch
 
 script_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(script_dir))
