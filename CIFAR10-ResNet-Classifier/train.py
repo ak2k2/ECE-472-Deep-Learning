@@ -1,120 +1,140 @@
 import os
 
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+import tensorflow as tf
 import yaml
+from tqdm import trange
+
+from adam_l2 import AdamWithL2Regularization
+from create_cifar_10 import get_cifar_10_as_df
+from create_cifar_100 import get_cifar_100_as_df
+from res_block_net import Classifier
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-import tensorflow as tf
-
-from custom_adam import AdamWithL2Regularization
-from create_cifar_df import get_cifar_10_as_df
-
-from classes import Conv2d, GroupNorm, ResidualBlock, Classifier
 
 
-def load_config():
-    with open("config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-    return config
+def load_config(config_path="config.yaml"):
+    with open(config_path, "r") as file:
+        return yaml.safe_load(file)
 
 
-def cross_entropy_loss(y_pred, y):
-    sparse_ce = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=y_pred)
-    return tf.reduce_mean(sparse_ce)
+def preprocess_data(df, label_column):
+    images = np.stack(df["image"].values) / 255.0
+    labels = tf.keras.utils.to_categorical(
+        df[label_column], num_classes=df[label_column].nunique()
+    )
+    return images, labels
 
 
-def accuracy(y_pred, y):
-    class_preds = tf.argmax(tf.nn.softmax(y_pred), axis=1)
-    is_equal = tf.equal(y, class_preds)
-    return tf.reduce_mean(tf.cast(is_equal, tf.float32))
+def initialize_model(num_classes):
+    return Classifier(num_classes=num_classes)
 
 
-def train(
+def train_model(
+    model,
     train_images,
     train_labels,
     test_images,
     test_labels,
-    model,
-    optimizer,
-    loss_fn,
-    train_acc_metric,
-    val_acc_metric,
-    num_epochs=10,
-    batch_size=64,
+    config,
 ):
-    def train_step(images, labels):
-        with tf.GradientTape() as tape:
-            logits = model.forward(images)
-            loss_value = loss_fn(labels, logits)
-        grads = tape.gradient(loss_value, model.trainable_variables)
-        optimizer.apply_gradients(zip(grads, model.trainable_variables))
-        train_acc_metric.update_state(labels, logits)
-        return loss_value
+    num_epochs = config["num_epochs"]
+    batch_size = config["batch_size"]
 
-    def test_step(images, labels):
-        logits = model.forward(images)
-        val_acc_metric.update_state(labels, logits)
-        # Training loop
-        batch_size = 64
-        num_epochs = 10
+    optimizer = AdamWithL2Regularization(learning_rate=0.005, lambda_l2=0.0001)
+    loss_fn = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
 
     for epoch in range(num_epochs):
-        print("\nStart of epoch %d" % (epoch,))
+        epoch_loss_avg = tf.keras.metrics.Mean()
+        epoch_accuracy = tf.keras.metrics.CategoricalAccuracy()
 
-        # Iterate over the batches of the dataset
-        for step in range(0, len(train_images), batch_size):
-            x_batch_train = train_images[step : step + batch_size]
-            y_batch_train = train_labels[step : step + batch_size]
+        for i in trange(0, len(train_images), batch_size):
+            batch_x = train_images[i : i + batch_size]
+            batch_y = train_labels[i : i + batch_size]
 
-            loss_value = train_step(x_batch_train, y_batch_train)
+            with tf.GradientTape() as tape:
+                logits = model(batch_x)
+                loss_value = loss_fn(batch_y, logits)
 
-            # Log every 200 batches
-            if step % 200 == 0:
-                print(f"Training loss (for one batch) at step {step}: {loss_value}")
-                print(f"Seen so far: {(step + 1) * batch_size} samples")
+            gradients = tape.gradient(loss_value, model.trainable_variables)
+            optimizer.apply_gradients(gradients, model.trainable_variables)
 
-        # Display metrics at the end of each epoch
-        train_acc = train_acc_metric.result()
-        print(f"Training accuracy over epoch: {train_acc}")
-        train_acc_metric.reset_states()
+            epoch_loss_avg.update_state(loss_value)
+            epoch_accuracy.update_state(batch_y, logits)
 
-        # Run a validation loop at the end of each epoch
-        for step in range(0, len(test_images), batch_size):
-            x_batch_val = test_images[step : step + batch_size]
-            y_batch_val = test_labels[step : step + batch_size]
-            test_step(x_batch_val, y_batch_val)
+        train_loss = epoch_loss_avg.result()
+        train_accuracy = epoch_accuracy.result()
+        test_loss, test_accuracy = evaluate_model(model, test_images, test_labels)
 
-        val_acc = val_acc_metric.result()
-        val_acc_metric.reset_states()
-        print(f"Validation accuracy: {val_acc}")
+        print(
+            f"Epoch {epoch + 1}/{num_epochs}, Loss: {train_loss:.3f}, Accuracy: {train_accuracy:.3%}"
+        )
+        print(f"Test Loss: {test_loss:.3f}, Test Accuracy: {test_accuracy:.3%}")
 
 
-train_df, test_df = get_cifar_10_as_df()
+def evaluate_model(model, test_images, test_labels):
+    loss_fn = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    test_logits = model(test_images)
+    test_loss = loss_fn(test_labels, test_logits)
+    test_accuracy = tf.keras.metrics.categorical_accuracy(test_labels, test_logits)
+    return test_loss.numpy(), np.mean(test_accuracy)
 
-train_images = np.array(train_df["image"].tolist())
-train_labels = np.array(train_df["label"].tolist())
-test_images = np.array(test_df["image"].tolist())
-test_labels = np.array(test_df["label"].tolist())
 
-model = Classifier(num_classes=10)
-optimizer = AdamWithL2Regularization()
-loss_fn = cross_entropy_loss
-train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
-val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
+def display_sample_predictions(
+    model, test_images, test_labels, num_samples=10, dataset_name="CIFAR-10"
+):
+    indices = np.random.choice(len(test_images), num_samples, replace=False)
+    sample_images = test_images[indices]
+    sample_labels = test_labels[indices]
 
-train(
-    train_images,
-    train_labels,
-    test_images,
-    test_labels,
-    model,
-    optimizer,
-    loss_fn,
-    train_acc_metric,
-    val_acc_metric,
-    num_epochs=10,
-    batch_size=64,
-)
+    predictions = model(sample_images)
+    predicted_classes = np.argmax(predictions, axis=1)
+    true_classes = np.argmax(sample_labels, axis=1)
+
+    fig, axes = plt.subplots(2, 5, figsize=(15, 6))
+    axes = axes.flatten()
+
+    for i, ax in enumerate(axes):
+        img = sample_images[i]
+        ax.imshow(img)
+        ax.axis("off")
+        ax.set_title(
+            f"{dataset_name} - True: {true_classes[i]}, Predicted: {predicted_classes[i]}"
+        )
+
+    plt.tight_layout()
+    plt.show()
+
+
+def run_pipeline(config):
+    dataset_type = config["dataset_type"]
+    num_training_examples = config["num_training_examples"]
+
+    if dataset_type == 10:
+        train_df, test_df = get_cifar_10_as_df()
+        label_column = "label"
+    elif dataset_type == 100:
+        train_df, test_df = get_cifar_100_as_df()
+        label_column = "fine_label"
+    else:
+        raise ValueError("Invalid dataset type. Choose 10 or 100.")
+
+    num_training_examples = 1000
+    train_df = train_df[:num_training_examples]
+    test_df = test_df[:num_training_examples]
+
+    train_images, train_labels = preprocess_data(train_df, label_column)
+    test_images, test_labels = preprocess_data(test_df, label_column)
+
+    model = initialize_model(num_classes=train_df[label_column].nunique())
+    train_model(model, train_images, train_labels, test_images, test_labels, config)
+    display_sample_predictions(
+        model, test_images, test_labels, dataset_type, f"CIFAR-{dataset_type}"
+    )
+
+
+if __name__ == "__main__":
+    config = load_config()
+    # run_pipeline(10)  # For CIFAR-10
+    run_pipeline(config)

@@ -1,4 +1,5 @@
 import os
+
 import tensorflow as tf
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -9,19 +10,19 @@ import tensorflow as tf
 
 class AdamWithL2Regularization:
     """
-    Adam class from: https://www.tensorflow.org/guide/core/mlp_core#:~:text=In%20an%20MLP%2C%20multiple%20dense,generalize%20well%20to%20unseen%20data.
+    Adam Optimizer: https://www.tensorflow.org/guide/core/mlp_core#:~:text=In%20an%20MLP%2C%20multiple%20dense,generalize%20well%20to%20unseen%20data.
     Added L2 regularization.
     """
 
     def __init__(
-        self, learning_rate=1e-2, beta_1=0.9, beta_2=0.999, ep=1e-9, lambda_l2=0.002
+        self, learning_rate=1e-2, beta_1=0.9, beta_2=0.999, ep=1e-9, lambda_l2=0
     ):
         # Initialize optimizer parameters and variable slots
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.learning_rate = learning_rate
-        self.ep = 1e-9
-        self.lambda_l2 = lambda_l2  # Regularization constant
+        self.ep = ep
+        self.lambda_l2 = lambda_l2  # Regularization constant. Default is 0.
         self.t = 1.0
         self.v_dvar, self.s_dvar = [], []
         self.built = False

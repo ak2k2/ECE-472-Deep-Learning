@@ -1,0 +1,6 @@
+dataset_type: 10 # 100 for CIFAR-100, 10 for CIFAR-10
+num_training_examples: 1000 
+num_epochs: 1
+batch_size: 256
+learning_rate: 0.005
+lambda_l2: 0.0001
