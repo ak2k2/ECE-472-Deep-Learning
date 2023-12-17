@@ -78,7 +78,7 @@ def train_model(config_path):
     )
 
     # Save the checkpoint along with image shape
-    siren_net_ckpt.step.assign(100)  # or whatever number of epochs you trained
+    siren_net_ckpt.step.assign(config["epochs"])
     # Save the weights into a checkpoint
     ckpt_path = siren_net_manager.save()
 

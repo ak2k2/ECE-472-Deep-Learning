@@ -3,16 +3,29 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+import yaml
 
 from siren import SirenNet
 
+
+def load_config(config_path):
+    with open(config_path, "r") as stream:
+        config = yaml.safe_load(stream)
+    return config
+
+
+config = load_config("config.yaml")
+
 # Define the SIREN network structure (match it to the one you trained)
 siren_net = SirenNet(
-    in_features=2, hidden_features=256, hidden_layers=3, out_features=3
+    in_features=2,
+    hidden_features=config["hidden_features"],
+    hidden_layers=config["hidden_layers"],
+    out_features=config["out_features"],
 )
 
 # Directory where you saved the checkpoint
-ckpt_dir = "./siren_context"
+ckpt_dir = config["ckpt_dir"]
 
 # Restore checkpoint
 siren_net_ckpt = tf.train.Checkpoint(step=tf.Variable(1), siren_net=siren_net)
@@ -36,6 +49,7 @@ coords = np.stack([y, x], axis=-1).reshape(-1, 2)
 # Pass the coordinates through the network and reshape the output
 generated_image_vals = siren_net_ckpt.siren_net(coords)
 generated_image = np.reshape(generated_image_vals.numpy(), (height, width, 3))
+generated_image = np.clip(generated_image, 0, 1)
 
 # Display the generated image
 plt.figure(figsize=(10, 10))
@@ -43,12 +57,4 @@ plt.imshow(generated_image)
 plt.axis("off")
 plt.show()
 
-# dispaly the size of memory needed to store the weights and the other parameters needed to recreate the image
-print(
-    "Memory size needed to store the weights: ",
-    siren_net_ckpt.siren_net.layers[0][0].w.shape,
-)
-print(
-    "Memory size needed to store the biases: ",
-    siren_net_ckpt.siren_net.layers[0][0].b.shape,
-)
+print("Recreated the image.")
