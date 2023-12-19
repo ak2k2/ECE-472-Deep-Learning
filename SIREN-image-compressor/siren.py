@@ -3,6 +3,8 @@ import math
 import numpy as np
 import tensorflow as tf
 
+# Implicit Neural Representations with Periodic Activation Functions: https://doi.org/10.48550/arXiv.2006.09661
+
 
 class Linear(tf.Module):
     def __init__(self, in_features, out_features, seed=None):
@@ -14,7 +16,6 @@ class Linear(tf.Module):
         self.b = tf.Variable(tf.zeros([out_features], dtype=tf.float32), trainable=True)
 
     def __call__(self, x):
-        # Ensure input tensor is also of type tf.float32
         x = tf.cast(x, tf.float32)
         return tf.matmul(x, self.w) + self.b
 
@@ -38,7 +39,7 @@ class SirenNet(tf.Module):
         return final_layer(x)  # No activation in the last layer
 
     def initialize_weights(self):
-        # Custom initialization, especially for the first layer
+        # Custom initialization as described in the paper
         for layer, w0 in self.layers:
             layer.w.assign(
                 tf.random.uniform(

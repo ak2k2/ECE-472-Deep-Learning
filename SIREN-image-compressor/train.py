@@ -1,6 +1,5 @@
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import yaml
@@ -19,8 +18,6 @@ def load_and_preprocess_image(image_path, new_height, new_width):
     image = tf.io.read_file(image_path)
     image = tf.io.decode_png(image, channels=3)
     image = tf.image.convert_image_dtype(image, tf.float32)
-
-    # Resize the image to the new dimensions
     image = tf.image.resize(image, [new_height, new_width])
 
     # Normalize pixel coordinates
@@ -56,7 +53,7 @@ def train_model(config_path):
     coords, image_vals, img_shape = load_and_preprocess_image(
         config["image_path"], config["new_height"], config["new_width"]
     )
-    # Initialize SIREN network
+    # Initialize SIREN
     siren_net = SirenNet(
         in_features=2,
         hidden_features=config["hidden_features"],
@@ -65,25 +62,35 @@ def train_model(config_path):
     )
     siren_net.initialize_weights()
 
-    # Train the network
+    # Train
     train_siren(
         siren_net, coords, image_vals, config["epochs"], config["learning_rate"]
     )
 
-    # Directory to save the checkpoint
+    # Save checkpoint
     ckpt_dir = config["ckpt_dir"]
     siren_net_ckpt = tf.train.Checkpoint(step=tf.Variable(1), siren_net=siren_net)
     siren_net_manager = tf.train.CheckpointManager(
         siren_net_ckpt, ckpt_dir, max_to_keep=10
     )
-
-    # Save the checkpoint along with image shape
     siren_net_ckpt.step.assign(config["epochs"])
-    # Save the weights into a checkpoint
     ckpt_path = siren_net_manager.save()
 
-    # Save meta info
+    # Image Metadata
     np.save(os.path.join(ckpt_dir, "image_shape.npy"), img_shape)
+
+    total_variables = sum(
+        [tf.size(var).numpy() for var in siren_net.trainable_variables]
+    )
+    print(
+        f"SIREN network saved at {ckpt_path} with {total_variables} trainable variables."
+    )
+
+    print(
+        f"Input Image after downsampling can be represented by - {img_shape[0] * img_shape[1] * 3} data points"
+    )
+
+    print(f"Output Image can be represented by - {total_variables} data points")
 
 
 train_model("config.yaml")

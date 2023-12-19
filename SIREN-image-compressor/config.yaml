@@ -1,9 +1,9 @@
-image_path: "bear.png"
+image_path: "images/bear.png"
 new_height: 64
 new_width: 64
 hidden_features: 256
 hidden_layers: 3
 out_features: 3
 epochs: 200
-learning_rate: 0.002
+learning_rate: 0.0015
 ckpt_dir: "./siren_context"
